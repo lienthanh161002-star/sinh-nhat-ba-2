@@ -238,20 +238,79 @@
       goToSlide(index);
     });
 
-    function goToSlide(index) {
-      activeSlideIndex = index;
-      updateSlideOffset();
-      
-      // Update dots classes
-      const dots = dotsContainer.querySelectorAll(".slider-dot");
-      dots.forEach((dot, idx) => {
-        dot.classList.toggle("active", idx === index);
-      });
-    }
-
     function updateSlideOffset() {
-      slidesContainer.style.transform = `translateX(-${activeSlideIndex * 100}%)`;
-    }
+  if (!slidesContainer || totalSlides === 0) return;
+
+  slidesContainer.style.transform =
+    `translateX(-${activeSlideIndex * 100}%)`;
+}
+   
+function goToSlide(index) {
+  if (totalSlides === 0) return;
+
+  // Đảm bảo chỉ số ảnh luôn nằm trong giới hạn
+  activeSlideIndex = (index + totalSlides) % totalSlides;
+
+  // Di chuyển slider đến ảnh được chọn
+  updateSlideOffset();
+
+  // Cập nhật trạng thái các dấu chấm
+  const dots = dotsContainer.querySelectorAll(".slider-dot");
+
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle("active", idx === activeSlideIndex);
+  });
+}
+
+
+    
+    // ─── TOUCH SWIPE FOR MOBILE GALLERY ───
+
+    // ─── MOBILE GALLERY SWIPE ───
+    const galleryContainer = document.querySelector(".gallery-container");
+
+    let startX = 0;
+    let startY = 0;
+    let trackingTouch = false;
+
+    galleryContainer.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) return;
+
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      trackingTouch = true;
+    }, { passive: true });
+
+    galleryContainer.addEventListener("touchend", function (e) {
+      if (!trackingTouch) return;
+      trackingTouch = false;
+
+      if (totalSlides <= 1) return;
+
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+
+      const diffX = endX - startX;
+      const diffY = endY - startY;
+
+      // Bỏ qua thao tác cuộn dọc
+      if (Math.abs(diffX) < 40) return;
+      if (Math.abs(diffX) <= Math.abs(diffY)) return;
+
+      if (diffX < 0) {
+        // Vuốt trái: ảnh kế tiếp
+        goToSlide((activeSlideIndex + 1) % totalSlides);
+      } else {
+        // Vuốt phải: ảnh trước
+        goToSlide((activeSlideIndex - 1 + totalSlides) % totalSlides);
+      }
+    }, { passive: true });
+
+    galleryContainer.addEventListener("touchcancel", function () {
+      trackingTouch = false;
+    });
+
+
 
     /* ─── WEB AUDIO MUSIC SYNTHESIZER ─── */
     let playingSynth = false;

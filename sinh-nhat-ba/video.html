@@ -61,7 +61,7 @@
     <div class="music-player reveal" style="max-width: 680px; width: 100%; padding: 2rem; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.45); z-index: 10;">
       <div style="width: 100%; border-radius: 18px; overflow: hidden; background: #000; border: 1px solid var(--border-glass); box-shadow: var(--shadow-glow);">
         <video id="bday-video" style="width: 100%; display: block;" controls playsinline loop>
-          <source src="11.mp4" type="video/mp4">
+          <source src="./images/vid1.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
       </div>
@@ -121,7 +121,7 @@
       if (activeConfig.videoData) {
         setVideoSource(activeConfig.videoData);
       } else {
-        setVideoSource("11.mp4");
+        setVideoSource("./images/vid1.mp4");
       }
     }
 
@@ -191,7 +191,7 @@
         applyTheme(activeConfig.theme);
         
         // Reset video element source
-        setVideoSource("11.mp4");
+        setVideoSource("./images/vid1.mp4");
         
         updatePageContent();
         drawer.classList.remove("open");
