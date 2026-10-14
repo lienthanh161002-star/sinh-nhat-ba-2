@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter the Vault 🔐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-trail"></div>
+
+  <!-- Background Particle Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Main Split Screen Layout -->
+  <main class="split-screen">
+    
+    <!-- Left Panel: Large Visual Storytelling -->
+    <div class="split-left">
+      <img src="./images/anh4.jpg" alt="Birthday Celebration Cover">
+      <div class="split-left-overlay"></div>
+      <div class="split-left-photo">
+        <img src="./images/anh1.jpg" alt="Birthday photo">
+      </div>
+      <div class="split-left-content">
+        <span class="section-label" style="text-align: left; margin-bottom: 0.5rem; display: block; color: var(--secondary);"></span>
+        <h1 class="split-left-title">Một Bất Ngờ Đặc Biệt Đang Chờ Đợi...</h1>
+        <p class="split-left-subtitle">Ba sẵn sàng chưa?</p>
+      </div>
+    </div>
+
+    <!-- Right Panel: Passcode Entry Card -->
+    <div class="split-right">
+      <div class="hero-glow glow-1"></div>
+      <div class="hero-glow glow-2"></div>
+      
+      <div class="passcode-card">
+        <div class="passcode-title">Mở Khóa Bữa tiệc 🎂</div>
+        <p class="passcode-subtitle">Bốn ô nhập mã, mỗi ô chỉ nhận tối đa một ký tự !</p>
+        
+        <!-- 6-digit Inputs -->
+        <div class="passcode-inputs">
+          <input type="text" maxlength="1" class="digit-input" data-index="0" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autofocus>
+          <input type="text" maxlength="1" class="digit-input" data-index="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+          <input type="text" maxlength="1" class="digit-input" data-index="2" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+          <input type="text" maxlength="1" class="digit-input" data-index="3" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+        </div>
+
+        <div id="error-msg" class="error-message">Mã không chính xác. Hãy thử lại!</div>
+
+        <button class="btn-primary" id="btn-unlock">
+          <span>🔓</span> Mở khóa món quà
+        </button>
+        <button class="btn-secondary" id="btn-hint">
+          <span>💡</span> Tiết lộ gợi ý mã mở khóa
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Large Format Passcode Display Overlay (Requirement) -->
+  <div class="large-passcode-overlay" id="large-passcode-overlay">
+    <div class="large-passcode-content">
+      <div class="large-passcode-lbl" id="overlay-lbl">Mã bí mật</div>
+      <div class="large-passcode-digits" id="overlay-digits">1974</div>
+      <p class="large-passcode-desc" id="overlay-desc">Dùng mã bí mật này để khám phá bất ngờ sinh nhật đặc biệt của ba nào!</p>
+      <button class="large-passcode-close" id="btn-close-overlay">❤️ Ba đã xem xong!</button>
+    </div>
+  </div>
+
+  <!-- Shared JavaScript Libraries -->
+  <script src="shared.js"></script>
+  <script>
+    const correctCode = "1974";
+    const inputs = document.querySelectorAll(".digit-input");
+    const errorMsg = document.getElementById("error-msg");
+    const btnUnlock = document.getElementById("btn-unlock");
+    const btnHint = document.getElementById("btn-hint");
+    const overlay = document.getElementById("large-passcode-overlay");
+    const overlayLbl = document.getElementById("overlay-lbl");
+    const overlayDigits = document.getElementById("overlay-digits");
+    const overlayDesc = document.getElementById("overlay-desc");
+    const btnCloseOverlay = document.getElementById("btn-close-overlay");
+
+    // Recipient customization lookup
+    if (activeConfig && activeConfig.name) {
+      document.querySelector(".split-left-subtitle").textContent = `Ba sẵn sàng chưaa, ${activeConfig.name}?`;
+    }
+
+    // Auto-focusing next/previous inputs
+    inputs.forEach((input, index) => {
+      input.addEventListener("input", (e) => {
+        const value = e.target.value;
+        // Strip non-numbers
+        e.target.value = value.replace(/[^0-9]/g, "");
+        
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        
+        // Auto validate if all inputs are full
+        checkAutoValidate();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && e.target.value.length === 0 && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+    });
+
+    function getEnteredPasscode() {
+      let code = "";
+      inputs.forEach(input => code += input.value);
+      return code;
+    }
+
+    function checkAutoValidate() {
+      const enteredCode = getEnteredPasscode();
+      if (enteredCode.length === 4) {
+        verifyPasscode(enteredCode);
+      }
+    }
+
+    function verifyPasscode(code) {
+      if (code === correctCode) {
+        // Success: display passcode on screen in a large glowing format before proceeding
+        errorMsg.classList.remove("show");
+        playSuccessChime();
+        if (window.createFirework) {
+          window.createFirework(window.innerWidth / 2, window.innerHeight / 2);
+        }
+
+        // Show passcode on screen in large format before going to 2nd file
+        overlayLbl.textContent = "Mật Khẩu chính xác! 🔓";
+        overlayDigits.textContent = correctCode;
+        overlayDesc.textContent = "Đang mở khóa bất ngờ sinh nhật... Chuẩn bị chiếc bánh kem cho bữa tiệc!";
+        // Hide close button so they don't click it during transition
+        btnCloseOverlay.style.display = "none";
+        overlay.classList.add("active");
+
+        // Confetti burst
+        if (typeof launchConfetti === "function") {
+          launchConfetti();
+        }
+
+        // Redirect to 2nd page (cake.html) after a short delay
+        setTimeout(() => {
+          window.location.href = "cake.html";
+        }, 2500);
+
+      } else {
+        // Error handling
+        errorMsg.classList.add("show");
+        inputs.forEach(input => {
+          input.value = "";
+          input.style.borderColor = "var(--primary)";
+        });
+        inputs[0].focus();
+        setTimeout(() => {
+          inputs.forEach(input => input.style.borderColor = "var(--border-glass)");
+        }, 800);
+      }
+    }
+
+    // Manual Unlock button click
+    btnUnlock.addEventListener("click", () => {
+      const code = getEnteredPasscode();
+      if (code.length < 4) {
+        errorMsg.textContent = "Ba nhập đầy đủ cả 4 chữ số nhé!";
+        errorMsg.classList.add("show");
+        inputs[code.length].focus();
+      } else {
+        verifyPasscode(code);
+      }
+    });
+
+    // Reveal passcode clue button click (displays passcode on screen in large format)
+    btnHint.addEventListener("click", () => {
+      initAudio();
+      overlayLbl.textContent = "Gợi Ý mật khẩu 💡";
+      overlayDigits.textContent = correctCode;
+      overlayDesc.textContent = "Ba hãy nhập mã gồm 4 chữ số vào các ô để mở khóa món quà sinh nhật đặc biệt nhé!";
+      btnCloseOverlay.style.display = "inline-block";
+      overlay.classList.add("active");
+      playSuccessChime();
+    });
+
+    btnCloseOverlay.addEventListener("click", () => {
+      overlay.classList.remove("active");
+      inputs[0].focus();
+    });
+  </script>
+</body>
+</html>
